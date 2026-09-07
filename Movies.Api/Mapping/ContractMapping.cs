@@ -14,6 +14,14 @@ public static class ContractMapping
         Genres = [.. request.Genres]
     };
 
+    public static Movie MapToMovie(this UpdateMovieRequest request, Guid id) => new()
+    {
+        Id = id,
+        Title = request.Title,
+        YearOfRelease = request.YearOfRelease,
+        Genres = [.. request.Genres]
+    };
+
     public static MovieResponse MapToMovieResponse(this Movie movie) => new()
     {
         Id = movie.Id,
