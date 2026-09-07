@@ -21,4 +21,9 @@ public static class ContractMapping
         YearOfRelease = movie.YearOfRelease,
         Genres = [.. movie.Genres]
     };
+
+    public static MoviesResponse MapToMoviesResponse(this IEnumerable<Movie> movies) => new()
+    {
+        Items = movies.Select(MapToMovieResponse)
+    };
 }
