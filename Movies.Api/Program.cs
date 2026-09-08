@@ -1,4 +1,5 @@
 using Movies.Application;
+using Movies.Application.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddApplication();
+builder.Services.AddDatabase(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
 var app = builder.Build();
 
@@ -23,5 +25,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var dbInitializer = app.Services.GetRequiredService<DbInitializer>();
+await dbInitializer.InitializeAsync();
 
 app.Run();
