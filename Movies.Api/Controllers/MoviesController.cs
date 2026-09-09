@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Movies.Api.Mapping;
-using Movies.Application.Repositories;
+using Movies.Application.Services;
 using Movies.Contracts.Requests;
 
 namespace Movies.Api.Controllers;
 
 [ApiController]
-public class MoviesController(IMovieRepository movieRepository) : ControllerBase
+public class MoviesController(IMovieService movieService) : ControllerBase
 {
     [HttpPost(ApiEndpoints.Movies.Create)]
     public async Task<IActionResult> Create([FromBody] CreateMovieRequest request)
     {
         var movie = request.MapToMovie();
 
-        await movieRepository.CreateAsync(movie);
+        await movieService.CreateAsync(movie);
 
         var response = movie.MapToMovieResponse();
 
@@ -24,8 +24,8 @@ public class MoviesController(IMovieRepository movieRepository) : ControllerBase
     public async Task<IActionResult> Get([FromRoute] string idOrSlug)
     {
         var movie = Guid.TryParse(idOrSlug, out var id)
-            ? await movieRepository.GetByIdAsync(id)
-            : await movieRepository.GetBySlugAsync(idOrSlug);
+            ? await movieService.GetByIdAsync(id)
+            : await movieService.GetBySlugAsync(idOrSlug);
 
         if (movie is null)
         {
@@ -40,7 +40,7 @@ public class MoviesController(IMovieRepository movieRepository) : ControllerBase
     [HttpGet(ApiEndpoints.Movies.GetAll)]
     public async Task<IActionResult> GetAll()
     {
-        var movies = await movieRepository.GetAllAsync();
+        var movies = await movieService.GetAllAsync();
 
         var response = movies.MapToMoviesResponse();
 
@@ -52,9 +52,9 @@ public class MoviesController(IMovieRepository movieRepository) : ControllerBase
     {
         var movie = request.MapToMovie(id);
 
-        var updated = await movieRepository.UpdateAsync(movie);
+        var updatedMovie = await movieService.UpdateAsync(movie);
 
-        if (!updated)
+        if (updatedMovie is null)
         {
             return NotFound();
         }
@@ -67,7 +67,7 @@ public class MoviesController(IMovieRepository movieRepository) : ControllerBase
     [HttpDelete(ApiEndpoints.Movies.Delete)]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        var deleted = await movieRepository.DeleteByIdAsync(id);
+        var deleted = await movieService.DeleteByIdAsync(id);
 
         if (!deleted)
         {
