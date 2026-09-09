@@ -21,5 +21,11 @@ public class DbInitializer(IDbConnectionFactory dbConnectionFactory)
                                         ON movies
                                         USING BTREE(slug)
                                       """);
+
+        await connection.ExecuteAsync("""
+                                        CREATE TABLE IF NOT EXISTS genres ( 
+                                        movieId UUID REFERENCES movies (Id),
+                                        name TEXT NOT NULL);
+                                      """);
     }
 }
