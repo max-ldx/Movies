@@ -33,7 +33,12 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy(AuthConstants.AdminUserPolicyName,
-        policy => policy.RequireClaim(AuthConstants.AdminUserClaimName, "true"));
+        policy => policy.RequireClaim(AuthConstants.AdminUserClaimName, "true"))
+    .AddPolicy(
+        AuthConstants.TrustedMemberPolicyName,
+        policy => policy.RequireAssertion(c => c.User.HasClaim(m =>
+            m is { Type: AuthConstants.AdminUserClaimName, Value: "true" }) || c.User.HasClaim(m =>
+            m is { Type: AuthConstants.TrustedMemberClaimName, Value: "true" })));
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
