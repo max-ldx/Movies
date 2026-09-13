@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Movies.Api.Auth;
 using Movies.Api.Mapping;
 using Movies.Application.Services;
 using Movies.Contracts.Requests;
@@ -21,13 +22,14 @@ public class MoviesController(IMovieService movieService) : ControllerBase
 
         return CreatedAtAction(nameof(Get), new { idOrSlug = response.Id }, response);
     }
-    
+
     [HttpGet(ApiEndpoints.Movies.Get)]
     public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken cancellationToken)
     {
+        var userId = HttpContext.GetUserId();
         var movie = Guid.TryParse(idOrSlug, out var id)
-            ? await movieService.GetByIdAsync(id, cancellationToken)
-            : await movieService.GetBySlugAsync(idOrSlug, cancellationToken);
+            ? await movieService.GetByIdAsync(id, userId, cancellationToken)
+            : await movieService.GetBySlugAsync(idOrSlug, userId, cancellationToken);
 
         if (movie is null)
         {
@@ -38,11 +40,12 @@ public class MoviesController(IMovieService movieService) : ControllerBase
 
         return Ok(response);
     }
-    
+
     [HttpGet(ApiEndpoints.Movies.GetAll)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var movies = await movieService.GetAllAsync(cancellationToken);
+        var userId = HttpContext.GetUserId();
+        var movies = await movieService.GetAllAsync(userId, cancellationToken);
 
         var response = movies.MapToMoviesResponse();
 
@@ -54,9 +57,10 @@ public class MoviesController(IMovieService movieService) : ControllerBase
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request,
         CancellationToken cancellationToken)
     {
+        var userId = HttpContext.GetUserId();
         var movie = request.MapToMovie(id);
 
-        var updatedMovie = await movieService.UpdateAsync(movie, cancellationToken);
+        var updatedMovie = await movieService.UpdateAsync(movie, userId, cancellationToken);
 
         if (updatedMovie is null)
         {
