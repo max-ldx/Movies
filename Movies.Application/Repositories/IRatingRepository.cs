@@ -8,4 +8,6 @@ public interface IRatingRepository
 
     Task<(float? Rating, int? UserRating)> GetRatingAsync(Guid movieId, Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteRatingAsync(Guid movieId, Guid userId, CancellationToken cancellationToken = default);
 }
