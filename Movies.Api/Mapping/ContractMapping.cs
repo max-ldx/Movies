@@ -33,13 +33,18 @@ public static class ContractMapping
         Genres = [.. movie.Genres]
     };
 
-    public static MoviesResponse MapToMoviesResponse(this IEnumerable<Movie> movies) => new()
-    {
-        Items = movies.Select(MapToMovieResponse)
-    };
+    public static MoviesResponse MapToMoviesResponse(this IEnumerable<Movie> movies, int page, int pageSize,
+        int totalCount) =>
+        new()
+        {
+            Items = movies.Select(MapToMovieResponse),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
 
     public static IEnumerable<MovieRatingResponse> MapToResponse(this IEnumerable<MovieRating> ratings) =>
-        ratings.Select(x => new MovieRatingResponse()
+        ratings.Select(x => new MovieRatingResponse
         {
             MovieId = x.MovieId,
             Slug = x.Slug,
@@ -52,7 +57,9 @@ public static class ContractMapping
         YearOfRelease = request.Year,
         SortField = request.SortBy?.Trim('+', '-'),
         SortOrder = request.SortBy is null ? SortOrder.Unsorted :
-            request.SortBy.StartsWith('-') ? SortOrder.Descending : SortOrder.Ascending
+            request.SortBy.StartsWith('-') ? SortOrder.Descending : SortOrder.Ascending,
+        Page = request.Page,
+        PageSize = request.PageSize
     };
 
     public static GetAllMoviesOptions WithUser(this GetAllMoviesOptions options, Guid? userId)
