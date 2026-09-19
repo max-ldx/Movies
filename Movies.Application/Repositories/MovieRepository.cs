@@ -97,17 +97,26 @@ public class MovieRepository(IDbConnectionFactory dbConnectionFactory) : IMovieR
     {
         using var connection = await dbConnectionFactory.CreateConnectionAsync(cancellationToken);
 
+        var orderClause = string.Empty;
+        if (options.SortField is not null)
+        {
+            orderClause = $"""
+                           , m.{options.SortField}
+                           ORDER BY m.{options.SortField} {(options.SortOrder is SortOrder.Ascending ? "ASC" : "DESC")}
+                           """;
+        }
+
         var result = await connection.QueryAsync(new CommandDefinition(
-            """
-            SELECT m.*, string_agg(DISTINCT g.name, ',') AS genres, ROUND(AVG(r.rating), 1) AS rating, myr.rating AS userrating
-            FROM movies m 
-            LEFT JOIN genres g ON m.id = g.movieid
-            LEFT JOIN ratings r ON m.id = r.movieid
-            LEFT JOIN ratings my on m.id = myr.movieid AND myr.userid = @userId
-            WHERE (@title IS NULL OR m.title LIKE ('%' || @title || '%'))
-            AND (@yearofrelease IS NULL OR m.yearofrelease = @yearofrelease)
-            GROUP BY id, userrating
-            """, new
+            $"""
+             SELECT m.*, string_agg(DISTINCT g.name, ',') AS genres, ROUND(AVG(r.rating), 1) AS rating, myr.rating AS userrating
+             FROM movies m 
+             LEFT JOIN genres g ON m.id = g.movieid
+             LEFT JOIN ratings r ON m.id = r.movieid
+             LEFT JOIN ratings my on m.id = myr.movieid AND myr.userid = @userId
+             WHERE (@title IS NULL OR m.title LIKE ('%' || @title || '%'))
+             AND (@yearofrelease IS NULL OR m.yearofrelease = @yearofrelease)
+             GROUP BY id, userrating {orderClause}
+             """, new
             {
                 userId = options.UserId,
                 title = options.Title,
