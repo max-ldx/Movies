@@ -41,6 +41,7 @@ builder.Services.AddAuthorizationBuilder()
             m is { Type: AuthConstants.AdminUserClaimName, Value: "true" }) || c.User.HasClaim(m =>
             m is { Type: AuthConstants.TrustedMemberClaimName, Value: "true" })));
 
+builder.Services.AddResponseCaching();
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>(DatabaseHealthCheck.Name);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -63,6 +64,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseResponseCaching();
 
 app.UseMiddleware<ValidationMappingMiddleware>();
 app.MapControllers();
